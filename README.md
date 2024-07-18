@@ -2,7 +2,7 @@ When you conquer the world, remember this day my friend.
 
 Here's a colorful `README.md` using Markdown with some emoji and formatting to make it visually appealing:
 
-```markdown
+
 # 🌈 Nydra 🌈
 
 **Nydra** is a powerful tool for scanning subnets and brute-forcing various network services using `nmap` and `hydra`. This script helps identify open ports and attempts to gain access using specified usernames and passwords.
@@ -51,19 +51,19 @@ pip install -r requirements.txt
 Run the script from the command line with the following options:
 
 ```bash
-python scan_and_bruteforce.py -s <subnet_file_or_single_subnet> -u <username_file_or_single_username> -p <password_file_or_single_password> -S <service>
+python nydra.py -s <subnet_file_or_single_subnet> -u <username_file_or_single_username> -p <password_file_or_single_password> -S <service>
 ```
 
 ### Example Commands
 
 1. **Using files:**
    ```bash
-   python scan_and_bruteforce.py -s subnet.txt -u usernames.txt -p passwords.txt -S ssh
+   python nydra.py -s subnet.txt -u usernames.txt -p passwords.txt -S ssh
    ```
 
 2. **Using single entries:**
    ```bash
-   python scan_and_bruteforce.py -s 192.168.1.0/24 -u admin -p password123 -S ssh
+   python nydra.py -s 192.168.1.0/24 -u admin -p password123 -S ssh
    ```
 
 ---
