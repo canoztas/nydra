@@ -3,7 +3,7 @@ When you conquer the world, remember this day my friend.
 Here's a colorful `README.md` using Markdown with some emoji and formatting to make it visually appealing:
 
 
-# 🌈 Nydra 🌈
+# ⚡ Nydra 🐍
 
 **Nydra** is a powerful tool for scanning subnets and brute-forcing various network services using `nmap` and `hydra`. This script helps identify open ports and attempts to gain access using specified usernames and passwords.
 
