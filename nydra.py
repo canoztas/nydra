@@ -66,17 +66,25 @@ def run_hydra(open_hosts, usernames, passwords, service):
 
         if isinstance(usernames, list):
             usernames_file = '/tmp/usernames.txt'
-            with open(usernames_file, 'w') as f:
-                f.write('\n'.join(usernames))
-            command += ['-L', usernames_file]
+            try:
+                with open(usernames_file, 'w') as f:
+                    f.write('\n'.join(usernames))
+                command += ['-L', usernames_file]
+            except Exception as e:
+                print(f"Error writing usernames to file: {e}")
+                continue  # Skip to next host
         else:
             command += ['-l', usernames]
 
         if isinstance(passwords, list):
             passwords_file = '/tmp/passwords.txt'
-            with open(passwords_file, 'w') as f:
-                f.write('\n'.join(passwords))
-            command += ['-P', passwords_file]
+            try:
+                with open(passwords_file, 'w') as f:
+                    f.write('\n'.join(passwords))
+                command += ['-P', passwords_file]
+            except Exception as e:
+                print(f"Error writing passwords to file: {e}")
+                continue  # Skip to next host
         else:
             command += ['-p', passwords]
 
@@ -117,8 +125,12 @@ def main():
     # Handle usernames
     if args.username:
         if args.username.endswith('.txt'):
-            with open(args.username) as f:
-                usernames = [line.strip() for line in f if line.strip()]
+            try:
+                with open(args.username) as f:
+                    usernames = [line.strip() for line in f if line.strip()]
+            except Exception as e:
+                print(f"Error reading usernames file: {e}")
+                sys.exit(1)
         else:
             usernames = args.username
     else:
@@ -127,8 +139,12 @@ def main():
     # Handle passwords
     if args.password:
         if args.password.endswith('.txt'):
-            with open(args.password) as f:
-                passwords = [line.strip() for line in f if line.strip()]
+            try:
+                with open(args.password) as f:
+                    passwords = [line.strip() for line in f if line.strip()]
+            except Exception as e:
+                print(f"Error reading passwords file: {e}")
+                sys.exit(1)
         else:
             passwords = args.password
     else:
