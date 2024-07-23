@@ -41,13 +41,22 @@ def scan_subnets(subnet_list, service):
 def run_hydra(open_hosts, usernames, passwords, service):
     for host in open_hosts:
         print(f"Bruteforcing {host} with {service}...")
-        command = ['hydra', '-L', usernames, '-P', passwords]
+        command = ['hydra', '-t', '4']
+
+        if isinstance(usernames, list):
+            command += ['-L', ','.join(usernames)]
+        else:
+            command += ['-L', usernames]
+
+        if isinstance(passwords, list):
+            command += ['-P', ','.join(passwords)]
+        else:
+            command += ['-P', passwords]
 
         if service == 'ftp':
-            command.append('-e')
-            command.append('n')  # Try anonymous FTP
+            command += ['-e', 'n']  # Try anonymous FTP
         
-        command.append(f'{service}://{host}')
+        command += [f'{service}://{host}']
         
         subprocess.run(command)
 
@@ -70,27 +79,29 @@ def main():
             subnet_list.append(args.subnet)
 
     # Handle usernames
-    usernames = []
     if args.username:
         if args.username.endswith('.txt'):
             with open(args.username) as f:
                 usernames = [line.strip() for line in f if line.strip()]
         else:
-            usernames.append(args.username)
+            usernames = [args.username]
+    else:
+        usernames = []
 
     # Handle passwords
-    passwords = []
     if args.password:
         if args.password.endswith('.txt'):
             with open(args.password) as f:
                 passwords = [line.strip() for line in f if line.strip()]
         else:
-            passwords.append(args.password)
+            passwords = [args.password]
+    else:
+        passwords = []
 
     open_hosts = scan_subnets(subnet_list, args.service)
 
     if open_hosts:
-        run_hydra(open_hosts, args.username, args.password, args.service)
+        run_hydra(open_hosts, usernames, passwords, args.service)
     else:
         print(f"No hosts found with open port for {args.service}.")
 
