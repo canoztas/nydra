@@ -100,6 +100,7 @@ def run_hydra(open_hosts, usernames, passwords, service):
                     if result.returncode == 0:
                         success, username, password, _ = parse_hydra_output(result.stdout)
                         if success:
+                            print(f"Found valid credentials for {service}://{host}: {username}:{password}")
                             output_file.write(f"Successful brute-force on {service}://{host} with {username}:{password}\n")
                         else:
                             output_file.write(f"No valid credentials found for {service}://{host}\n")
