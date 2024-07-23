@@ -64,27 +64,13 @@ def run_hydra(open_hosts, usernames, passwords, service):
         # Prepare command for hydra
         command = ['hydra', '-t', '4']
 
-        if isinstance(usernames, list):
-            usernames_file = '/tmp/usernames.txt'
-            try:
-                with open(usernames_file, 'w') as f:
-                    f.write('\n'.join(usernames))
-                command += ['-L', usernames_file]
-            except Exception as e:
-                print(f"Error writing usernames to file: {e}")
-                continue  # Skip to next host
+        if usernames.endswith('.txt'):
+            command += ['-L', usernames]
         else:
             command += ['-l', usernames]
 
-        if isinstance(passwords, list):
-            passwords_file = '/tmp/passwords.txt'
-            try:
-                with open(passwords_file, 'w') as f:
-                    f.write('\n'.join(passwords))
-                command += ['-P', passwords_file]
-            except Exception as e:
-                print(f"Error writing passwords to file: {e}")
-                continue  # Skip to next host
+        if passwords.endswith('.txt'):
+            command += ['-P', passwords]
         else:
             command += ['-p', passwords]
 
@@ -97,12 +83,6 @@ def run_hydra(open_hosts, usernames, passwords, service):
             subprocess.run(command, check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error running hydra: {e}")
-        finally:
-            # Clean up: remove the temporary files
-            if isinstance(usernames, list):
-                subprocess.run(['rm', usernames_file])
-            if isinstance(passwords, list):
-                subprocess.run(['rm', passwords_file])
 
 def main():
     parser = argparse.ArgumentParser(description="Scan subnets and brute force services.")
@@ -124,31 +104,11 @@ def main():
 
     # Handle usernames
     if args.username:
-        if args.username.endswith('.txt'):
-            try:
-                with open(args.username) as f:
-                    usernames = [line.strip() for line in f if line.strip()]
-            except Exception as e:
-                print(f"Error reading usernames file: {e}")
-                sys.exit(1)
-        else:
-            usernames = args.username
-    else:
-        usernames = []
+        usernames = args.username
 
     # Handle passwords
     if args.password:
-        if args.password.endswith('.txt'):
-            try:
-                with open(args.password) as f:
-                    passwords = [line.strip() for line in f if line.strip()]
-            except Exception as e:
-                print(f"Error reading passwords file: {e}")
-                sys.exit(1)
-        else:
-            passwords = args.password
-    else:
-        passwords = []
+        passwords = args.password
 
     open_hosts = scan_subnets(subnet_list, args.service)
 
