@@ -38,13 +38,15 @@ def scan_subnets(subnet_list, service):
 
     return open_hosts
 
-def run_hydra(open_hosts, username_list, password_list, service):
+def run_hydra(open_hosts, usernames, passwords, service):
     for host in open_hosts:
         print(f"Bruteforcing {host} with {service}...")
-        command = ['hydra', '-l', username_list, '-P', password_list]
+        command = ['hydra', '-L', usernames, '-P', passwords]
 
         if service == 'ftp':
-            command.append('-e', 'n')  # Try anonymous FTP
+            command.append('-e')
+            command.append('n')  # Try anonymous FTP
+        
         command.append(f'{service}://{host}')
         
         subprocess.run(command)
@@ -68,21 +70,27 @@ def main():
             subnet_list.append(args.subnet)
 
     # Handle usernames
-    username_list = args.username if args.username else ''
-    if args.username and args.username.endswith('.txt'):
-        with open(args.username) as f:
-            username_list = f.read().strip()
+    usernames = []
+    if args.username:
+        if args.username.endswith('.txt'):
+            with open(args.username) as f:
+                usernames = [line.strip() for line in f if line.strip()]
+        else:
+            usernames.append(args.username)
 
     # Handle passwords
-    password_list = args.password if args.password else ''
-    if args.password and args.password.endswith('.txt'):
-        with open(args.password) as f:
-            password_list = f.read().strip()
+    passwords = []
+    if args.password:
+        if args.password.endswith('.txt'):
+            with open(args.password) as f:
+                passwords = [line.strip() for line in f if line.strip()]
+        else:
+            passwords.append(args.password)
 
     open_hosts = scan_subnets(subnet_list, args.service)
 
     if open_hosts:
-        run_hydra(open_hosts, username_list, password_list, args.service)
+        run_hydra(open_hosts, args.username, args.password, args.service)
     else:
         print(f"No hosts found with open port for {args.service}.")
 
